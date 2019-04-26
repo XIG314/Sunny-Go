@@ -1,4 +1,4 @@
-.vendor/
-.umm_ss/
-.umm_osr/
-.explosion/
+vendor/
+umm_ss/
+umm_osr/
+explosion/
