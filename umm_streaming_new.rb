@@ -163,29 +163,6 @@ def explosion(id, reply_id, log_count)
   puts 'だいばくはつ' if @debug
 end
 
-def listed
-  toot = 'うみみ…'
-  files = Dir.entries('./umm_ss/')
-  files.delete('.')
-  files.delete('..')
-  file = files.sample
-  file_path = './umm_ss/' + file
-  media = @rest.upload_media(file_path)
-  @rest.create_status(toot, media_ids: [media.id])
-  time = Time.now
-  File.open('./log/streaming/' + log_count + '.txt', 'a+:utf-8:utf-8') do |log|
-    log.puts(time)
-    log.puts(id)
-    log.puts('行け')
-    log.puts(file_path)
-    log.puts "\n"
-    if log.size >= 300
-      file_no = Dir.glob('./log/streaming/*.txt').count + 1
-      File.open('./log/streaming/' + file_no.to_s + '.txt', 'a+:utf-8:utf-8')
-    end
-  end
-end
-
 def help(id, reply_id, log_count)
   help = File.open('./text/help.txt', 'a+:utf-8:utf-8').read
   toot = '@' + id + ' ' + help
@@ -255,8 +232,6 @@ begin
           threads << Thread.start { umm_card(username, in_reply_to_id, log_counts)}
         elsif content == 'だいばくはつ'
           threads << Thread.start { explosion(username, in_reply_to_id, log_counts) }
-        elsif (content == '行け') && (username == 'XIG_niconico')
-          threads << Thread.start { listed }
         elsif content == 'ヘルプ'
           threads << Thread.start { help(in_reply_to_id, log_counts) }
         elsif (content.split[0] == 'ログ') && (username == 'XIG_niconico')
