@@ -18,8 +18,15 @@ class Net::HTTP
   alias initialize initialize_new
 end
 
-umm = ["ss", "osr", "card"]
-folder = './umm_' + umm.sample + '/'
+umm_seed = rand(11)
+if umm_seed.between?(1, 4)
+  umm = "ss"
+elsif umm_seed.between?(5, 8)
+  umm = "card"
+elsif umm_seed.between?(9, 10)
+  umm = "osr"
+end
+folder = './umm_' + umm + '/'
 
 if folder == './umm_ss/'
   toot = 'うみみ…'
