@@ -202,7 +202,6 @@ def log_reply(reply_id)
     end
   end
   @rest.create_status(toot, in_reply_to_id: [reply_id], visibility: 'direct')
-  puts 'ログ リプライ'
 end
 
 threads = []
@@ -220,9 +219,7 @@ begin
         username = toot.account.username
         in_reply_to_id = toot.status.id
         log_counts = Dir.glob('./log/streaming/*.txt').count.to_s
-        if content == 'うみみ'
-          threads << Thread.start { umm(username, in_reply_to_id, log_counts) }
-        elsif content == 'おしり'
+        if content == 'おしり'
           threads << Thread.start { umm_osr(username, in_reply_to_id, log_counts) }
         elsif content == 'おなか'
           threads << Thread.start { umm_onk(username, in_reply_to_id, log_counts) }
@@ -240,10 +237,14 @@ begin
           elsif content.split[1] == 'リプライ'
             threads << Thread.start { log_reply(in_reply_to_id) }
           end
+        else
+          threads << Thread.start { umm(username, in_reply_to_id, log_counts) }
         end
       end
     end
   end
 rescue StandardError => e
+  retry_count += 1
+  retry if retry_count <= 3
   p e
 end
