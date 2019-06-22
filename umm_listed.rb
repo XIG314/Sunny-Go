@@ -18,35 +18,41 @@ class Net::HTTP
   alias initialize initialize_new
 end
 
-umm_seed = rand(101)
-if umm_seed.between?(1, 50)
-  umm = "ss"
-elsif umm_seed.between?(51, 97)
-  umm = "card"
-elsif umm_seed.between?(98, 100)
-  umm = "osr"
+begin
+  umm_seed = rand(101)
+  if umm_seed.between?(1, 50)
+    umm = "ss"
+  elsif umm_seed.between?(51, 97)
+    umm = "card"
+  elsif umm_seed.between?(98, 100)
+    umm = "osr"
+  end
+  folder = './umm_' + umm + '/'
+  if folder == './umm_ss/'
+    toot = 'うみみ…'
+    files = Dir.entries('./umm_ss/')
+    files.delete('.')
+    files.delete('..')
+    file = files.sample
+  elsif folder == './umm_osr/'
+    toot = 'おしり…'
+    files = Dir.entries('./umm_osr/')
+    files.delete('.')
+    files.delete('..')
+    file = files.sample
+  elsif folder == './umm_card/'
+    toot = 'うみみ…'
+    files = Dir.entries('./umm_card/')
+    files.delete('.')
+    files.delete('..')
+    file = files.sample
+  end
+rescue => e
+  retry_count += 1
+  retry if retry_count <= 3
+  p e
 end
-folder = './umm_' + umm + '/'
 
-if folder == './umm_ss/'
-  toot = 'うみみ…'
-  files = Dir.entries('./umm_ss/')
-  files.delete('.')
-  files.delete('..')
-  file = files.sample
-elsif folder == './umm_osr/'
-  toot = 'おしり…'
-  files = Dir.entries('./umm_osr/')
-  files.delete('.')
-  files.delete('..')
-  file = files.sample
-elsif folder == './umm_card/'
-  toot = 'うみみ…'
-  files = Dir.entries('./umm_card/')
-  files.delete('.')
-  files.delete('..')
-  file = files.sample
-end
 file_path = folder + file
 media = mstdn.upload_media(file_path)
 
