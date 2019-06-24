@@ -117,7 +117,7 @@ end
 
 def help(id, reply_id)
   help = File.open('./text/help.txt', 'a+:utf-8:utf-8').read
-  toot = '@' + id + help + help
+  toot = '@' + id + ' ' + help
   @rest.create_status(toot, in_reply_to_id: [reply_id], visibility: 'unlisted')
   puts 'ヘルプ' if @debug
 rescue StandardError => e
