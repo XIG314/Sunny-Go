@@ -7,7 +7,7 @@ require 'json'
 require 'sanitize'
 require 'time'
 
-@debug = true
+@debug = false
 
 MASTODON_HOST = 'imastodon.net'.freeze
 TOKEN = ENV['MASTODON_ACCESS_TOKEN']
@@ -48,6 +48,10 @@ def umm(id, reply_id, log_count)
     end
   end
   puts 'うみみ' if @debug
+rescue StandardError => e
+  retry_count += 1
+  retry if retry_count <= 3
+  p e
 end
 
 def umm_osr(id, reply_id, log_count)
@@ -72,6 +76,10 @@ def umm_osr(id, reply_id, log_count)
     end
   end
   puts 'おしり' if @debug
+rescue StandardError => e
+  retry_count += 1
+  retry if retry_count <= 3
+  p e
 end
 
 def umm_onk(id, reply_id, log_count)
@@ -89,6 +97,10 @@ def umm_onk(id, reply_id, log_count)
     end
   end
   puts 'おなか' if @debug
+rescue StandardError => e
+  retry_count += 1
+  retry if retry_count <= 3
+  p e
 end
 
 def umm_ss(id, reply_id, log_count)
@@ -113,6 +125,10 @@ def umm_ss(id, reply_id, log_count)
     end
   end
   puts 'スクショ' if @debug
+rescue StandardError => e
+  retry_count += 1
+  retry if retry_count <= 3
+  p e
 end
 
 def umm_card(id, reply_id, log_count)
@@ -137,6 +153,10 @@ def umm_card(id, reply_id, log_count)
     end
   end
   puts 'カード' if @debug
+rescue StandardError => e
+  retry_count += 1
+  retry if retry_count <= 3
+  p e
 end
 
 def explosion(id, reply_id, log_count)
@@ -161,6 +181,10 @@ def explosion(id, reply_id, log_count)
     end
   end
   puts 'だいばくはつ' if @debug
+rescue StandardError => e
+  retry_count += 1
+  retry if retry_count <= 3
+  p e
 end
 
 def help(id, reply_id, log_count)
@@ -179,29 +203,10 @@ def help(id, reply_id, log_count)
     end
   end
   puts 'ヘルプ' if @debug
-end
-
-def log_teiki(reply_id)
-  toot = '@XIG_niconico '
-  log_count = Dir.glob('./log/schedule/*.txt').count.to_s
-  File.open('./log/schedule/' + log_count + '.txt', 'r:utf-8:utf-8') do |log|
-    log.each do |line|
-      toot << line
-    end
-  end
-  @rest.create_status(toot, in_reply_to_id: [reply_id], visibility: 'direct')
-  puts 'ログ 定期'
-end
-
-def log_reply(reply_id)
-  toot = '@XIG_niconico '
-  log_count = Dir.glob('./log/streaming/*.txt').count.to_s
-  File.open('./log/streaming/' + log_count + '.txt', 'r:utf-8:utf-8') do |log|
-    log.each do |line|
-      toot << line
-    end
-  end
-  @rest.create_status(toot, in_reply_to_id: [reply_id], visibility: 'direct')
+rescue StandardError => e
+  retry_count += 1
+  retry if retry_count <= 3
+  p e
 end
 
 threads = []
@@ -219,32 +224,23 @@ begin
         username = toot.account.username
         in_reply_to_id = toot.status.id
         log_counts = Dir.glob('./log/streaming/*.txt').count.to_s
-        if content == 'おしり'
+        case content
+        when 'おしり'
           threads << Thread.start { umm_osr(username, in_reply_to_id, log_counts) }
-        elsif content == 'おなか'
+        when 'おなか'
           threads << Thread.start { umm_onk(username, in_reply_to_id, log_counts) }
-        elsif content == 'スクショ'
+        when 'スクショ'
           threads << Thread.start { umm_ss(username, in_reply_to_id, log_counts) }
-        elsif content == 'カード'
+        when 'カード'
           threads << Thread.start { umm_card(username, in_reply_to_id, log_counts)}
-        elsif content == 'だいばくはつ'
+        when 'だいばくはつ'
           threads << Thread.start { explosion(username, in_reply_to_id, log_counts) }
-        elsif content == 'ヘルプ'
+        when 'ヘルプ'
           threads << Thread.start { help(in_reply_to_id, log_counts) }
-        elsif (content.split[0] == 'ログ') && (username == 'XIG_niconico')
-          if content.split[1] == '定期'
-            threads << Thread.start { log_teiki(in_reply_to_id) }
-          elsif content.split[1] == 'リプライ'
-            threads << Thread.start { log_reply(in_reply_to_id) }
-          end
         else
           threads << Thread.start { umm(username, in_reply_to_id, log_counts) }
         end
       end
     end
   end
-rescue StandardError => e
-  retry_count += 1
-  retry if retry_count <= 3
-  p e
 end

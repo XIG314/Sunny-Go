@@ -28,19 +28,20 @@ begin
     umm = "osr"
   end
   folder = './umm_' + umm + '/'
-  if folder == './umm_ss/'
+  case umm
+  when 'ss'
     toot = 'うみみ…'
     files = Dir.entries('./umm_ss/')
     files.delete('.')
     files.delete('..')
     file = files.sample
-  elsif folder == './umm_osr/'
+  when 'osr'
     toot = 'おしり…'
     files = Dir.entries('./umm_osr/')
     files.delete('.')
     files.delete('..')
     file = files.sample
-  elsif folder == './umm_card/'
+  when 'card'
     toot = 'うみみ…'
     files = Dir.entries('./umm_card/')
     files.delete('.')
@@ -56,20 +57,10 @@ end
 file_path = folder + file
 media = mstdn.upload_media(file_path)
 
-mstdn.create_status(toot, media_ids: [media.id], visibility: 'unlisted')
-
-time = Time.now
-log_count = Dir.glob('./log/schedule/*.txt').count.to_s
-File.open('./log/schedule/' + log_count + '.txt', mode = 'a+:utf-8:utf-8') do |log|
-  log.puts(time)
-  log.puts(toot)
-  log.puts(file_path)
-  log.puts "\n"
-  if log.size >= 300
-    file_no = Dir.glob('./log/schedule/*.txt').count + 1
-    File.open('./log/schedule/' + file_no.to_s + '.txt', mode = 'a+:utf-8:utf-8') do |log_new|
-      log_new.puts('ログ 定期')
-      log_new.puts "\n"
-    end
-  end
+begin
+  mstdn.create_status(toot, media_ids: [media.id], visibility: 'unlisted')
+rescue StandardError => e
+  retry_count += 1
+  retry if retry_count <= 3
+  p e
 end
