@@ -18,6 +18,7 @@ class Net::HTTP
   alias initialize initialize_new
 end
 
+retry_count = 0
 begin
   umm_seed = rand(101)
   if umm_seed.between?(1, 50)
@@ -55,8 +56,17 @@ rescue => e
 end
 
 file_path = folder + file
-media = mstdn.upload_media(file_path)
 
+retry_count = 0
+begin 
+  media = mstdn.upload_media(file_path)
+rescue StandardError => e
+  retry_count += 1
+  retry if retry_count <= 3
+  p e
+end
+
+retry_count = 0
 begin
   mstdn.create_status(toot, media_ids: [media.id], visibility: 'unlisted')
 rescue StandardError => e
