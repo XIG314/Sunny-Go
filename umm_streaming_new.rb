@@ -5,6 +5,7 @@ require 'dotenv/load'
 require 'net/http'
 require 'json'
 require 'sanitize'
+require 'csv'
 
 @debug = false
 
@@ -126,6 +127,41 @@ rescue StandardError => e
   p e
 end
 
+def dex(id, reply_id, poke)
+  options = {
+    headers: true,
+    encoding: 'SJIS:UTF-8'
+  }
+  csv = CSV.read('pokemon_status.csv', options)
+  pokemon_name = poke.split(" ")[1]
+  result = csv.select { |row| row.to_h if row.field?(pokemon_name) }
+  p result
+  result.each do |data|
+    no = "#{data["図鑑番号"]}"
+    name = "#{data["ポケモン名"]}"
+    type1 = "#{data["タイプ１"]}"
+    type2 = "#{data["タイプ２"]}"
+    ability1 = "#{data["通常特性１"]}"
+    ability2 = "#{data["通常特性２"]}"
+    dream_ability = "#{data["夢特性"]}"
+    h = "#{data["HP"]}"
+    a = "#{data["こうげき"]}"
+    b = "#{data["ぼうぎょ"]}"
+    c = "#{data["とくこう"]}"
+    d = "#{data["とくぼう"]}"
+    s = "#{data["すばやさ"]}"
+    sum = "#{data["合計"]}"
+
+    toot = '@' + id + ' ' + 'No.' + no + ' ' + name + ' ' + 'タイプ:' + type1 + ' ' + type2 + ' ' + '特性:' + ability1 + ' ' + ability2 + ' ' + '夢特性' + dream_ability + ' ' + 'HP:' + h + ' ' + '攻撃:' + a + ' ' + '防御:' + b + ' ' +'特攻:' + c + ' ' + '特防:' + d + ' ' + '素早さ:' + s + ' ' + '合計:' + sum 
+    @rest.create_status(toot, in_reply_to_id: [reply_id], visibility: 'unlisted')
+  end
+  
+rescue StandardError => e
+  retry_count += 1
+  retry if retry_count <= 3
+  p e
+end
+
 threads = []
 
 begin
@@ -140,7 +176,7 @@ begin
         content.gsub!('@umm ', '')
         username = toot.account.username
         in_reply_to_id = toot.status.id
-        case content
+        case content.split(" ")[0]
         when 'おしり'
           threads << Thread.start { umm_osr(username, in_reply_to_id,) }
         when 'おなか'
@@ -153,6 +189,8 @@ begin
           threads << Thread.start { explosion(username, in_reply_to_id) }
         when 'ヘルプ'
           threads << Thread.start { help(username, in_reply_to_id) }
+        when '図鑑'
+          threads << Thread.start { dex(username, in_reply_to_id, content) }
         else
           threads << Thread.start { umm(username, in_reply_to_id) }
         end
