@@ -18,53 +18,59 @@ class Net::HTTP
   alias initialize initialize_new
 end
 
-umm_seed = rand(101)
-if umm_seed.between?(1, 50)
-  umm = "ss"
-elsif umm_seed.between?(51, 97)
-  umm = "card"
-elsif umm_seed.between?(98, 100)
-  umm = "osr"
-end
-folder = './umm_' + umm + '/'
-
-if folder == './umm_ss/'
-  toot = 'うみみ…'
-  files = Dir.entries('./umm_ss/')
-  files.delete('.')
-  files.delete('..')
-  file = files.sample
-elsif folder == './umm_osr/'
-  toot = 'おしり…'
-  files = Dir.entries('./umm_osr/')
-  files.delete('.')
-  files.delete('..')
-  file = files.sample
-elsif folder == './umm_card/'
-  toot = 'うみみ…'
-  files = Dir.entries('./umm_card/')
-  files.delete('.')
-  files.delete('..')
-  file = files.sample
+retry_count = 0
+begin
+  umm_seed = rand(101)
+  if umm_seed.between?(1, 50)
+    umm = "ss"
+  elsif umm_seed.between?(51, 97)
+    umm = "card"
+  elsif umm_seed.between?(98, 100)
+    umm = "osr"
+  end
+  folder = './umm_' + umm + '/'
+  case umm
+  when 'ss'
+    toot = 'うみみ…'
+    files = Dir.entries('./umm_ss/')
+    files.delete('.')
+    files.delete('..')
+    file = files.sample
+  when 'osr'
+    toot = 'おしり…'
+    files = Dir.entries('./umm_osr/')
+    files.delete('.')
+    files.delete('..')
+    file = files.sample
+  when 'card'
+    toot = 'うみみ…'
+    files = Dir.entries('./umm_card/')
+    files.delete('.')
+    files.delete('..')
+    file = files.sample
+  end
+rescue => e
+  retry_count += 1
+  retry if retry_count <= 3
+  p e
 end
 
 file_path = folder + file
-media = mstdn.upload_media(file_path)
 
-mstdn.create_status(toot, media_ids: [media.id], visibility: 'unlisted')
+retry_count = 0
+begin 
+  media = mstdn.upload_media(file_path)
+rescue StandardError => e
+  retry_count += 1
+  retry if retry_count <= 3
+  p e
+end
 
-time = Time.now
-log_count = Dir.glob('./log/schedule/*.txt').count.to_s
-File.open('./log/schedule/' + log_count + '.txt', mode = 'a+:utf-8:utf-8') do |log|
-  log.puts(time)
-  log.puts(toot)
-  log.puts(file_path)
-  log.puts "\n"
-  if log.size >= 300
-    file_no = Dir.glob('./log/schedule/*.txt').count + 1
-    File.open('./log/schedule/' + file_no.to_s + '.txt', mode = 'a+:utf-8:utf-8') do |log_new|
-      log_new.puts('ログ 定期')
-      log_new.puts "\n"
-    end
-  end
+retry_count = 0
+begin
+  mstdn.create_status(toot, media_ids: [media.id], visibility: 'unlisted')
+rescue StandardError => e
+  retry_count += 1
+  retry if retry_count <= 3
+  p e
 end
