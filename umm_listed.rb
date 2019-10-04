@@ -19,14 +19,13 @@ class Net::HTTP
 end
 
 retry_count = 0
+
 begin
-  umm_seed = rand(101)
-  if umm_seed.between?(1, 50)
-    umm = "ss"
-  elsif umm_seed.between?(51, 97)
-    umm = "card"
-  elsif umm_seed.between?(98, 100)
-    umm = "osr"
+  umm_seed = rand(1..100)
+  if umm_seed <= ENV['osr'].to_i
+    umm = 'osr'
+  else
+    umm = ['ss', 'card'].sample
   end
   folder = './umm_' + umm + '/'
   case umm
