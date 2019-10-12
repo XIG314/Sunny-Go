@@ -77,6 +77,7 @@ def umm_ss(id, reply_id)
   file = files.sample
   file_path = './umm_ss/' + file
   media = @rest.upload_media(file_path)
+  @rest.create_status(toot, in_reply_to_id: [reply_id], media_ids: [media.id], visibility: 'unlisted')
   puts 'スクショ' if @debug
 rescue StandardError => e
   retry_count += 1
