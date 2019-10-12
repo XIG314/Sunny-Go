@@ -10,7 +10,7 @@ MASTODON_HOST = 'https://imastodon.net'.freeze
 
 mstdn = Mastodon::REST::Client.new(base_url: MASTODON_HOST, bearer_token: ENV['MASTODON_ACCESS_TOKEN'])
 
-umm = ['ss', 'osr']
+
 date = Date.today
 today = date.month.to_s + '/' + date.day.to_s
 
@@ -25,13 +25,11 @@ result = csv.select { |row| row.to_h if row.field?(today) }
 retry_count = 0
 begin
   if result.empty?
-    umm_seed = rand(101)
-    if umm_seed.between?(1, 50)
-      umm = "ss"
-    elsif umm_seed.between?(51, 97)
-      umm = "card"
-    elsif umm_seed.between?(98, 100)
-      umm = "osr"
+    umm_seed = rand(1..100)
+    if umm_seed <= ENV['osr'].to_i
+      umm = 'osr'
+    else
+      umm = ['ss', 'card'].sample
     end
     folder = './umm_' + umm + '/'
     case umm
@@ -59,9 +57,11 @@ begin
     result.each do |data|
       text = "#{data["Umm"]}"
       toot = text + '…'
-      file = "#{data["Name"]}" + '.png'
+      $file_path_1 = './birthday/' + "#{data["Name"]}" + '_1' + '.png'
+      $file_path_2 = './birthday/' + "#{data["Name"]}" + '_2' + '.png'
+      $file_path_3 = './birthday/' + "#{data["Name"]}" + '_3' + '.png'
+      $file_path_4 = './birthday/' + "#{data["Name"]}" + '_4' + '.png'
     end
-    file_path = './birthday/' + file
   end
 rescue => e
   retry_count += 1
@@ -70,17 +70,17 @@ rescue => e
 end
 
 retry_count = 0
-begin 
-  media = mstdn.upload_media(file_path)
-rescue StandardError => e
-  retry_count += 1
-  retry if retry_count <= 3
-  p e
-end
-
-retry_count = 0
 begin
-  mstdn.create_status(toot, media_ids: [media.id])
+  if result.empty? 
+    media = mstdn.upload_media(file_path)
+    mstdn.create_status(toot, media_ids: [media.id])
+  else
+    media_1 = mstdn.upload_media($file_path_1)
+    media_2 = mstdn.upload_media($file_path_2)
+    media_3 = mstdn.upload_media($file_path_3)
+    media_4 = mstdn.upload_media($file_path_4)
+    mstdn.create_status(toot, media_ids: [media_1.id, media_2.id, media_3.id, media_4.id])
+  end
 rescue StandardError => e
   retry_count += 1
   retry if retry_count <= 3
