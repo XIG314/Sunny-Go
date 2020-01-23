@@ -6,6 +6,7 @@ require 'net/http'
 require 'json'
 require 'sanitize'
 require 'csv'
+require 'uri'
 
 @debug = false
 
@@ -163,6 +164,24 @@ rescue StandardError => e
   p e
 end
 
+def exchange(id, reply_id, value, nation)
+  res = Net::HTTP.get(URI.parse('https://www.gaitameonline.com/rateaj/getrate'))
+  hash = JSON.parse(res)
+  code = nation + 'JPY'
+  for i in 0..23 do
+    if hash['quotes'][i]['currencyPairCode'] == code
+      bid = hash['quotes'][i]['bid'].to_f
+      result = value.to_f * bid
+      toot = '@' + id + ' ' + result.to_s
+      @rest.create_status(toot, in_reply_to_id: [reply_id], visibility: 'unlisted')
+    end
+  end
+rescue StandardError => e
+  retry_count += 1
+  retry if retry_count <= 3
+  p e
+end
+
 threads = []
 
 begin
@@ -192,6 +211,8 @@ begin
           threads << Thread.start { help(username, in_reply_to_id) }
         when '図鑑'
           threads << Thread.start { dex(username, in_reply_to_id, content) }
+        when '為替'
+          threads << Thread.start { exchange(username, in_reply_to_id, content.split(" ")[1], content.split(" ")[2]) }
         else
           threads << Thread.start { umm(username, in_reply_to_id) }
         end
