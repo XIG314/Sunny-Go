@@ -42,26 +42,71 @@ def umm_cmn(category, visibility)
   end
 end
 
-def birthday(category)
+def birthday(idol)
+  result = idol
 
-end
-
-every(1.hour, 'lsited') do
-  umm_seed = rand(1..100)
-  if umm_seed <= ENV['osr'].to_i
-    umm = 'osr'
-  else
-    umm = ['ss', 'card'].sample
+  result.each do |data|
+    text = "#{data["Umm"]}"
+    toot = text + '…'
+    $file_path_1 = './birthday/' + "#{data["Name"]}" + '_1' + '.png'
+    $file_path_2 = './birthday/' + "#{data["Name"]}" + '_2' + '.png'
+    $file_path_3 = './birthday/' + "#{data["Name"]}" + '_3' + '.png'
+    $file_path_4 = './birthday/' + "#{data["Name"]}" + '_4' + '.png'
   end
-  umm_cmn(umm, listed)
+
+  retry_count = 0
+  begin
+    media_1 = mstdn.upload_media($file_path_1)
+    media_2 = mstdn.upload_media($file_path_2)
+    media_3 = mstdn.upload_media($file_path_3)
+    media_4 = mstdn.upload_media($file_path_4)
+    mstdn.create_status(toot, media_ids: [media_1.id, media_2.id, media_3.id, media_4.id])
+  rescue StandardError => e
+    retry_count += 1
+    retry if retry_count <= 3
+    p e
+  end
 end
 
-every(1.hour, 'unlsited', at: ['**:15', '**:30', '**:45']) do
-  umm_seed = rand(1..100)
-  if umm_seed <= ENV['osr'].to_i
-    umm = 'osr'
-  else
-    umm = ['ss', 'card'].sample
+handler do |job|
+  case job
+  when 'listed'
+    umm_seed = rand(1..100)
+    if umm_seed <= ENV['osr'].to_i
+      umm = 'osr'
+    else
+      umm = ['ss', 'card'].sample
+    end
+    umm_cmn(umm, listed)
+  when 'unlisted'
+    umm_seed = rand(1..100)
+    if umm_seed <= ENV['osr'].to_i
+      umm = 'osr'
+    else
+      umm = ['ss', 'card'].sample
+    end
+    umm_cmn(umm, unlisted)
+  when 'birthday'
+    csv = CSV.read('Birthday.csv', options)
+    result = csv.select { |row| row.to_h if row.field?(today) }
+    if result.empty?
+      umm_seed = rand(1..100)
+      if umm_seed <= ENV['osr'].to_i
+        umm = 'osr'
+      else
+        umm = ['ss', 'card'].sample
+      end
+      umm_cmn(umm, listed)
+    else
+      birthday(result)
+    end
   end
-  umm_cmn(umm, unlisted)
 end
+
+every(1.hour, 'lsited', at:['1:00', '2:00', '3:00', '4:00', '5:00', '6:00', '7:00', '8:00', '9:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00', '20:00', '21:00', '22:00'])
+
+every(1.hour, 'unlsited', at: ['**:15', '**:30', '**:45'])
+
+every(1.day, 'birthday', at: '00:00')
+
+every(1.day, 'event', at: '23:00')

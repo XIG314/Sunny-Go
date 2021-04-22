@@ -5,6 +5,7 @@ require 'dotenv/load'
 require 'net/http'
 require 'time'
 require 'csv'
+require 'parallel'
 
 MASTODON_HOST = 'https://imastodon.net'.freeze
 
@@ -58,9 +59,9 @@ begin
       text = "#{data["Umm"]}"
       toot = text + '…'
       $file_path_1 = './birthday/' + "#{data["Name"]}" + '_1' + '.png'
-      $file_path_2 = './birthday/' + "#{data["Name"]}" + '_2' + '.png'
-      $file_path_3 = './birthday/' + "#{data["Name"]}" + '_3' + '.png'
-      $file_path_4 = './birthday/' + "#{data["Name"]}" + '_4' + '.png'
+      # $file_path_2 = './birthday/' + "#{data["Name"]}" + '_2' + '.png'
+      # $file_path_3 = './birthday/' + "#{data["Name"]}" + '_3' + '.png'
+      # $file_path_4 = './birthday/' + "#{data["Name"]}" + '_4' + '.png'
     end
   end
 rescue => e
@@ -76,10 +77,10 @@ begin
     mstdn.create_status(toot, media_ids: [media.id])
   else
     media_1 = mstdn.upload_media($file_path_1)
-    media_2 = mstdn.upload_media($file_path_2)
-    media_3 = mstdn.upload_media($file_path_3)
-    media_4 = mstdn.upload_media($file_path_4)
-    mstdn.create_status(toot, media_ids: [media_1.id, media_2.id, media_3.id, media_4.id])
+    # media_2 = mstdn.upload_media($file_path_2)
+    # media_3 = mstdn.upload_media($file_path_3)
+    # media_4 = mstdn.upload_media($file_path_4)
+    mstdn.create_status(toot, media_ids: [media_1.id])
   end
 rescue StandardError => e
   retry_count += 1

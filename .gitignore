@@ -1,10 +1,2 @@
 vendor/
-umm_ss/
-umm_osr/
-explosion/
-birthday/
-umm_card/
-csv.rb
 *.env
-*.txt
-*.csv

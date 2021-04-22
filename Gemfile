@@ -12,3 +12,7 @@ gem 'public_suffix'
 gem 'rails'
 gem 'sanitize'
 gem 'websocket-client-simple'
+gem "parallel"
+gem "pkg-config"
+gem "mini_portile2"
+gem "nokogiri"
